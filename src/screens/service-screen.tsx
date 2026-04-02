@@ -77,13 +77,13 @@ export function ServiceScreen() {
 		value: version.number,
 	}))
 
-	const backendOptions: SelectOption[] = (details?.backends ?? []).map(
-		(backend) => ({
+	const backendOptions: SelectOption[] = (details?.backends ?? [])
+		.map((backend) => ({
 			name: backend.name,
 			description: backend.address,
 			value: backend.name,
-		}),
-	)
+		}))
+		.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
 	const snippetOptions: SelectOption[] = (() => {
 		const snippets = details?.snippets ?? []
@@ -288,13 +288,7 @@ export function ServiceScreen() {
 				<text>| {service.paused ? '⏸️' : '▶️'}</text>
 			</box>
 			<box flexGrow={1} flexDirection="row" gap={1}>
-				<box
-					width="40%"
-					minWidth={40}
-					flexGrow={1}
-					flexDirection="column"
-					gap={1}
-				>
+				<box width="30%" flexDirection="column" gap={1}>
 					<box
 						flexDirection="row"
 						gap={1}
@@ -395,6 +389,13 @@ export function ServiceScreen() {
 						selectedBackendIndex,
 						'backends',
 						(index) => dispatch({ type: 'backend/selection-set', index }),
+						(option) => {
+							const name = option?.value as string | undefined
+							if (name) {
+								dispatch({ type: 'backend/select', name })
+								dispatch({ type: 'screen/backend' })
+							}
+						},
 					)}
 					{renderSelectBox(
 						'Snippets',

@@ -1,7 +1,7 @@
-import type { Service, ServiceVersionDetail, Snippet } from 'fastly'
+import type { Backend, Service, ServiceVersionDetail, Snippet } from 'fastly'
 import React, { createContext, useContext, useReducer } from 'react'
 
-export type Screen = 'services' | 'service' | 'snippet'
+export type Screen = 'services' | 'service' | 'snippet' | 'backend'
 export type FocusTarget = 'filter' | 'list'
 export type ServiceFocusTarget =
 	| 'versions'
@@ -26,6 +26,10 @@ export interface AppState {
 	versionSelectedIndex: number
 	selectedVersionNumber: number | null
 	backendSelectedIndex: number
+	selectedBackendName: string | null
+	backendDetails: Backend | null
+	backendDetailsLoading: boolean
+	backendDetailsError: string | null
 	snippetSelectedIndex: number
 	vclSelectedIndex: number
 	domainSelectedIndex: number
@@ -48,6 +52,10 @@ type Action =
 	| { type: 'version/selection-set'; index: number }
 	| { type: 'version/select'; versionNumber: number }
 	| { type: 'backend/selection-set'; index: number }
+	| { type: 'backend/select'; name: string }
+	| { type: 'backend/details-loading' }
+	| { type: 'backend/details-loaded'; backend: Backend | null }
+	| { type: 'backend/details-error'; error: string }
 	| { type: 'snippet/selection-set'; index: number }
 	| { type: 'vcl/selection-set'; index: number }
 	| { type: 'domain/selection-set'; index: number }
@@ -60,6 +68,7 @@ type Action =
 	| { type: 'version/details-loaded'; version: ServiceVersionDetail | null }
 	| { type: 'version/details-error'; error: string }
 	| { type: 'service/focus'; focus: ServiceFocusTarget }
+	| { type: 'screen/backend' }
 	| { type: 'screen/snippet' }
 	| { type: 'screen/service' }
 	| { type: 'screen/services' }
@@ -80,6 +89,10 @@ const initialState: AppState = {
 	versionSelectedIndex: 0,
 	selectedVersionNumber: null,
 	backendSelectedIndex: 0,
+	selectedBackendName: null,
+	backendDetails: null,
+	backendDetailsLoading: false,
+	backendDetailsError: null,
 	snippetSelectedIndex: 0,
 	vclSelectedIndex: 0,
 	domainSelectedIndex: 0,
@@ -138,6 +151,10 @@ function reducer(state: AppState, action: Action): AppState {
 				versionSelectedIndex: 0,
 				selectedVersionNumber: null,
 				backendSelectedIndex: 0,
+				selectedBackendName: null,
+				backendDetails: null,
+				backendDetailsLoading: false,
+				backendDetailsError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
 				domainSelectedIndex: 0,
@@ -164,6 +181,10 @@ function reducer(state: AppState, action: Action): AppState {
 				...state,
 				selectedVersionNumber: action.versionNumber,
 				versionDetailsError: null,
+				selectedBackendName: null,
+				backendDetails: null,
+				backendDetailsLoading: false,
+				backendDetailsError: null,
 				selectedSnippetName: null,
 				snippetDetails: null,
 				snippetDetailsLoading: false,
@@ -173,6 +194,32 @@ function reducer(state: AppState, action: Action): AppState {
 			return {
 				...state,
 				backendSelectedIndex: action.index,
+			}
+		case 'backend/select':
+			return {
+				...state,
+				selectedBackendName: action.name,
+			}
+		case 'backend/details-loading':
+			return {
+				...state,
+				backendDetailsLoading: true,
+				backendDetailsError: null,
+				backendDetails: null,
+			}
+		case 'backend/details-loaded':
+			return {
+				...state,
+				backendDetailsLoading: false,
+				backendDetailsError: null,
+				backendDetails: action.backend,
+			}
+		case 'backend/details-error':
+			return {
+				...state,
+				backendDetailsLoading: false,
+				backendDetailsError: action.error,
+				backendDetails: null,
 			}
 		case 'snippet/selection-set':
 			return {
@@ -241,6 +288,11 @@ function reducer(state: AppState, action: Action): AppState {
 				versionDetailsError: action.error,
 				versionDetails: null,
 			}
+		case 'screen/backend':
+			return {
+				...state,
+				screen: 'backend',
+			}
 		case 'screen/snippet':
 			return {
 				...state,
@@ -262,6 +314,10 @@ function reducer(state: AppState, action: Action): AppState {
 				versionSelectedIndex: 0,
 				selectedVersionNumber: null,
 				backendSelectedIndex: 0,
+				selectedBackendName: null,
+				backendDetails: null,
+				backendDetailsLoading: false,
+				backendDetailsError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
 				domainSelectedIndex: 0,

@@ -234,6 +234,11 @@ declare module "fastly" {
 			service_id: string;
 			version_id: number;
 		}): Promise<Backend[]>;
+		getBackend(options: {
+			service_id: string;
+			version_id: number;
+			backend_name: string;
+		}): Promise<Backend>;
 		deleteBackend(options: {
 			service_id: string;
 			version_id: number;

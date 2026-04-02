@@ -1,5 +1,5 @@
 import * as Fastly from 'fastly'
-import type { Service, ServiceDetail, Snippet } from 'fastly'
+import type { Backend, Service, ServiceDetail, Snippet } from 'fastly'
 
 const DEFAULT_PAGE_SIZE = 200
 
@@ -45,5 +45,19 @@ export async function getSnippetDetail(
 		service_id: serviceId,
 		version_id: versionNumber,
 		name: snippetName,
+	})
+}
+
+export async function getBackendDetail(
+	serviceId: string,
+	versionNumber: number,
+	backendName: string,
+): Promise<Backend> {
+	ensureAuthenticated()
+	const api = new Fastly.BackendApi()
+	return api.getBackend({
+		service_id: serviceId,
+		version_id: versionNumber,
+		backend_name: backendName,
 	})
 }
