@@ -1,7 +1,12 @@
 import { createCliRenderer, TextAttributes } from '@opentui/core'
 import { createRoot, useKeyboard, useRenderer } from '@opentui/react'
 import { useEffect } from 'react'
-import { listServices } from './fastly-client'
+import {
+	activateServiceVersion,
+	cloneServiceVersion,
+	listServiceVersions,
+	listServices,
+} from './fastly-client'
 import { BackendScreen } from './screens/backend-screen'
 import { ServiceScreen } from './screens/service-screen'
 import { SnippetScreen } from './screens/snippet-screen'
@@ -45,6 +50,8 @@ function AppShell() {
 		const isTab = key.name === 'tab'
 		const isUp = key.name === 'up'
 		const isDown = key.name === 'down'
+		const isYes = key.name === 'y' || key.name === 'Y'
+		const isNo = key.name === 'n' || key.name === 'N'
 
 		if (key.ctrl && key.name === 'c') {
 			renderer.stop()
@@ -92,8 +99,163 @@ function AppShell() {
 		}
 
 		if (state.screen === 'service') {
+			if (state.activateConfirmOpen) {
+				if (isYes) {
+					const serviceId = state.selectedServiceId
+					const versionNumber = state.selectedVersionNumber
+					if (!serviceId || versionNumber === null) {
+						dispatch({
+							type: 'activate/error',
+							error: 'Select a version to activate.',
+						})
+						return
+					}
+
+					const runActivate = async () => {
+						dispatch({ type: 'activate/start' })
+						try {
+							const activated = await activateServiceVersion(
+								serviceId,
+								versionNumber,
+							)
+							const versions = await listServiceVersions(serviceId)
+							dispatch({
+								type: 'services/versions-update',
+								serviceId,
+								versions,
+							})
+
+							const activeVersion = versions.find((v) => v.active)
+							const sortedVersions = [...versions].sort(
+								(a, b) => (b.number ?? 0) - (a.number ?? 0),
+							)
+							const orderedVersions = [
+								...(activeVersion ? [activeVersion] : []),
+								...sortedVersions.filter(
+									(version) => version.number !== activeVersion?.number,
+								),
+							]
+							const selectedIndex = Math.max(
+								0,
+								orderedVersions.findIndex(
+									(version) => version.number === activated.number,
+								),
+							)
+
+							dispatch({
+								type: 'version/select',
+								versionNumber: activated.number,
+							})
+							dispatch({ type: 'version/selection-set', index: selectedIndex })
+							dispatch({ type: 'activate/success' })
+						} catch (error) {
+							const message =
+								error instanceof Error
+									? error.message
+									: 'Failed to activate version'
+							dispatch({ type: 'activate/error', error: message })
+						}
+					}
+
+					void runActivate()
+				}
+
+				if (isNo || isEscape || key.name === 'backspace') {
+					dispatch({ type: 'activate/confirm-close' })
+				}
+
+				return
+			}
+
+			if (state.cloneConfirmOpen) {
+				if (isYes) {
+					const serviceId = state.selectedServiceId
+					const versionNumber = state.selectedVersionNumber
+					if (!serviceId || versionNumber === null) {
+						dispatch({
+							type: 'clone/error',
+							error: 'Select a version to clone.',
+						})
+						return
+					}
+
+					const runClone = async () => {
+						dispatch({ type: 'clone/start' })
+						try {
+							const clone = await cloneServiceVersion(serviceId, versionNumber)
+							const versions = await listServiceVersions(serviceId)
+							dispatch({
+								type: 'services/versions-update',
+								serviceId,
+								versions,
+							})
+
+							const activeVersion = versions.find((v) => v.active)
+							const sortedVersions = [...versions].sort(
+								(a, b) => (b.number ?? 0) - (a.number ?? 0),
+							)
+							const orderedVersions = [
+								...(activeVersion ? [activeVersion] : []),
+								...sortedVersions.filter(
+									(version) => version.number !== activeVersion?.number,
+								),
+							]
+							const selectedIndex = Math.max(
+								0,
+								orderedVersions.findIndex(
+									(version) => version.number === clone.number,
+								),
+							)
+
+							dispatch({
+								type: 'version/select',
+								versionNumber: clone.number,
+							})
+							dispatch({ type: 'version/selection-set', index: selectedIndex })
+							dispatch({ type: 'clone/success' })
+						} catch (error) {
+							const message =
+								error instanceof Error
+									? error.message
+									: 'Failed to clone version'
+							dispatch({ type: 'clone/error', error: message })
+						}
+					}
+
+					void runClone()
+				}
+
+				if (isNo || isEscape || key.name === 'backspace') {
+					dispatch({ type: 'clone/confirm-close' })
+				}
+
+				return
+			}
+
 			if (isEscape || key.name === 'backspace') {
 				dispatch({ type: 'screen/services' })
+			}
+			if (key.name === 'c' && !key.ctrl && !key.meta) {
+				if (state.selectedVersionNumber === null) {
+					dispatch({
+						type: 'clone/error',
+						error: 'Select a version to clone.',
+					})
+					return
+				}
+				dispatch({ type: 'clone/confirm-open' })
+				return
+			}
+			if (key.name === 'a' && key.shift && !key.ctrl && !key.meta) {
+				if (state.selectedVersionNumber === null) {
+					dispatch({
+						type: 'activate/error',
+						error: 'Select a version to activate.',
+					})
+					return
+				}
+				dispatch({ type: 'activate/confirm-open' })
+				return
 			}
 			if (isTab) {
 				const focusOrder = [

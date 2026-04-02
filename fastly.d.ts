@@ -405,6 +405,9 @@ declare module "fastly" {
 			service_id: string;
 			version_id: number;
 		}): Promise<Version>;
+		listServiceVersions(options: {
+			service_id: string;
+		}): Promise<Version[]>;
 	}
 
 	export class VclApi {

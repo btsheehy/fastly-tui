@@ -65,6 +65,8 @@ export function ServiceScreen() {
 			parts.push('✅')
 		} else if (version.locked) {
 			parts.push('🔒')
+		} else {
+			parts.push('📝')
 		}
 		return parts.join(' ')
 	}
@@ -427,6 +429,32 @@ export function ServiceScreen() {
 					)}
 				</box>
 			</box>
+			{state.cloneConfirmOpen ? (
+				<box border padding={1} flexShrink={0} flexDirection="column" gap={1}>
+					<text>Clone version {state.selectedVersionNumber ?? '?'}? (y/n)</text>
+					<text attributes={TextAttributes.DIM}>
+						This will create a new draft version.
+					</text>
+				</box>
+			) : null}
+			{state.activateConfirmOpen ? (
+				<box border padding={1} flexShrink={0} flexDirection="column" gap={1}>
+					<text>
+						Activate version {state.selectedVersionNumber ?? '?'}? (y/n)
+					</text>
+					<text attributes={TextAttributes.DIM}>
+						This will make the version live.
+					</text>
+				</box>
+			) : null}
+			{state.cloneLoading ? (
+				<text attributes={TextAttributes.DIM}>Cloning version...</text>
+			) : null}
+			{state.activateLoading ? (
+				<text attributes={TextAttributes.DIM}>Activating version...</text>
+			) : null}
+			{state.cloneError ? <text fg="red">{state.cloneError}</text> : null}
+			{state.activateError ? <text fg="red">{state.activateError}</text> : null}
 			<text attributes={TextAttributes.DIM}>
 				Press Esc to return to services.
 			</text>

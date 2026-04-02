@@ -1,5 +1,12 @@
 import * as Fastly from 'fastly'
-import type { Backend, Service, ServiceDetail, Snippet, Vcl } from 'fastly'
+import type {
+	Backend,
+	Service,
+	ServiceDetail,
+	Snippet,
+	Vcl,
+	Version,
+} from 'fastly'
 
 const DEFAULT_PAGE_SIZE = 200
 
@@ -73,5 +80,39 @@ export async function getVclDetail(
 		service_id: serviceId,
 		version_id: versionNumber,
 		vcl_name: vclName,
+	})
+}
+
+export async function cloneServiceVersion(
+	serviceId: string,
+	versionNumber: number,
+): Promise<Version> {
+	ensureAuthenticated()
+	const api = new Fastly.VersionApi()
+	return api.cloneServiceVersion({
+		service_id: serviceId,
+		version_id: versionNumber,
+	})
+}
+
+export async function activateServiceVersion(
+	serviceId: string,
+	versionNumber: number,
+): Promise<Version> {
+	ensureAuthenticated()
+	const api = new Fastly.VersionApi()
+	return api.activateServiceVersion({
+		service_id: serviceId,
+		version_id: versionNumber,
+	})
+}
+
+export async function listServiceVersions(
+	serviceId: string,
+): Promise<Version[]> {
+	ensureAuthenticated()
+	const api = new Fastly.VersionApi()
+	return api.listServiceVersions({
+		service_id: serviceId,
 	})
 }

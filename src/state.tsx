@@ -4,6 +4,7 @@ import type {
 	ServiceVersionDetail,
 	Snippet,
 	Vcl,
+	Version,
 } from 'fastly'
 import React, { createContext, useContext, useReducer } from 'react'
 
@@ -25,6 +26,12 @@ export interface AppState {
 	servicesLoading: boolean
 	servicesLoaded: boolean
 	servicesError: string | null
+	cloneConfirmOpen: boolean
+	cloneLoading: boolean
+	cloneError: string | null
+	activateConfirmOpen: boolean
+	activateLoading: boolean
+	activateError: string | null
 	filter: string
 	selectedIndex: number
 	selectedServiceId: string | null
@@ -58,6 +65,17 @@ type Action =
 	| { type: 'services/loading' }
 	| { type: 'services/loaded'; services: Service[] }
 	| { type: 'services/error'; error: string }
+	| { type: 'services/versions-update'; serviceId: string; versions: Version[] }
+	| { type: 'clone/confirm-open' }
+	| { type: 'clone/confirm-close' }
+	| { type: 'clone/start' }
+	| { type: 'clone/success' }
+	| { type: 'clone/error'; error: string }
+	| { type: 'activate/confirm-open' }
+	| { type: 'activate/confirm-close' }
+	| { type: 'activate/start' }
+	| { type: 'activate/success' }
+	| { type: 'activate/error'; error: string }
 	| { type: 'filter/set'; value: string }
 	| { type: 'selection/set'; index: number }
 	| { type: 'service/select'; serviceId: string }
@@ -99,6 +117,12 @@ const initialState: AppState = {
 	servicesLoading: false,
 	servicesLoaded: false,
 	servicesError: null,
+	cloneConfirmOpen: false,
+	cloneLoading: false,
+	cloneError: null,
+	activateConfirmOpen: false,
+	activateLoading: false,
+	activateError: null,
 	filter: '',
 	selectedIndex: 0,
 	selectedServiceId: null,
@@ -153,6 +177,77 @@ function reducer(state: AppState, action: Action): AppState {
 				servicesLoaded: false,
 				servicesError: action.error,
 			}
+		case 'services/versions-update':
+			return {
+				...state,
+				services: state.services.map((service) =>
+					service.id === action.serviceId
+						? { ...service, versions: action.versions }
+						: service,
+				),
+			}
+		case 'clone/confirm-open':
+			return {
+				...state,
+				cloneConfirmOpen: true,
+				cloneError: null,
+			}
+		case 'clone/confirm-close':
+			return {
+				...state,
+				cloneConfirmOpen: false,
+			}
+		case 'clone/start':
+			return {
+				...state,
+				cloneLoading: true,
+				cloneError: null,
+			}
+		case 'clone/success':
+			return {
+				...state,
+				cloneLoading: false,
+				cloneConfirmOpen: false,
+				cloneError: null,
+			}
+		case 'clone/error':
+			return {
+				...state,
+				cloneLoading: false,
+				cloneConfirmOpen: false,
+				cloneError: action.error,
+			}
+		case 'activate/confirm-open':
+			return {
+				...state,
+				activateConfirmOpen: true,
+				activateError: null,
+			}
+		case 'activate/confirm-close':
+			return {
+				...state,
+				activateConfirmOpen: false,
+			}
+		case 'activate/start':
+			return {
+				...state,
+				activateLoading: true,
+				activateError: null,
+			}
+		case 'activate/success':
+			return {
+				...state,
+				activateLoading: false,
+				activateConfirmOpen: false,
+				activateError: null,
+			}
+		case 'activate/error':
+			return {
+				...state,
+				activateLoading: false,
+				activateConfirmOpen: false,
+				activateError: action.error,
+			}
 		case 'filter/set':
 			return {
 				...state,
@@ -193,6 +288,12 @@ function reducer(state: AppState, action: Action): AppState {
 				versionDetails: null,
 				versionDetailsLoading: false,
 				versionDetailsError: null,
+				cloneConfirmOpen: false,
+				cloneLoading: false,
+				cloneError: null,
+				activateConfirmOpen: false,
+				activateLoading: false,
+				activateError: null,
 			}
 		case 'service/focus':
 			return {
@@ -221,6 +322,12 @@ function reducer(state: AppState, action: Action): AppState {
 				snippetDetails: null,
 				snippetDetailsLoading: false,
 				snippetDetailsError: null,
+				cloneConfirmOpen: false,
+				cloneLoading: false,
+				cloneError: null,
+				activateConfirmOpen: false,
+				activateLoading: false,
+				activateError: null,
 			}
 		case 'backend/selection-set':
 			return {
@@ -402,6 +509,12 @@ function reducer(state: AppState, action: Action): AppState {
 				versionDetails: null,
 				versionDetailsLoading: false,
 				versionDetailsError: null,
+				cloneConfirmOpen: false,
+				cloneLoading: false,
+				cloneError: null,
+				activateConfirmOpen: false,
+				activateLoading: false,
+				activateError: null,
 			}
 		case 'focus/set':
 			return {
