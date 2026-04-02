@@ -1,5 +1,5 @@
 import * as Fastly from 'fastly'
-import type { Backend, Service, ServiceDetail, Snippet } from 'fastly'
+import type { Backend, Service, ServiceDetail, Snippet, Vcl } from 'fastly'
 
 const DEFAULT_PAGE_SIZE = 200
 
@@ -59,5 +59,19 @@ export async function getBackendDetail(
 		service_id: serviceId,
 		version_id: versionNumber,
 		backend_name: backendName,
+	})
+}
+
+export async function getVclDetail(
+	serviceId: string,
+	versionNumber: number,
+	vclName: string,
+): Promise<Vcl> {
+	ensureAuthenticated()
+	const api = new Fastly.VclApi()
+	return api.getCustomVcl({
+		service_id: serviceId,
+		version_id: versionNumber,
+		vcl_name: vclName,
 	})
 }

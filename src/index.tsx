@@ -5,6 +5,7 @@ import { listServices } from './fastly-client'
 import { BackendScreen } from './screens/backend-screen'
 import { ServiceScreen } from './screens/service-screen'
 import { SnippetScreen } from './screens/snippet-screen'
+import { VclScreen } from './screens/vcl-screen'
 import { ServicesPalette } from './screens/services-palette'
 import { AppStateProvider, useAppState } from './state'
 
@@ -60,6 +61,19 @@ function AppShell() {
 		if (state.screen === 'backend') {
 			if (isEscape || key.name === 'backspace') {
 				dispatch({ type: 'screen/service' })
+			}
+			return
+		}
+
+		if (state.screen === 'vcl') {
+			if (isEscape || key.name === 'backspace') {
+				dispatch({ type: 'screen/service' })
+			}
+			if (isTab) {
+				dispatch({
+					type: 'vcl/focus',
+					focus: state.vclFocus === 'list' ? 'content' : 'list',
+				})
 			}
 			return
 		}
@@ -139,6 +153,7 @@ function AppShell() {
 			{state.screen === 'service' ? <ServiceScreen /> : null}
 			{state.screen === 'snippet' ? <SnippetScreen /> : null}
 			{state.screen === 'backend' ? <BackendScreen /> : null}
+			{state.screen === 'vcl' ? <VclScreen /> : null}
 			<box flexDirection="row" justifyContent="space-between">
 				<text attributes={TextAttributes.DIM}>
 					{state.screen === 'services'
@@ -147,7 +162,9 @@ function AppShell() {
 							? 'tab switch panel  arrows move  enter load  esc back  q quit'
 							: state.screen === 'backend'
 								? 'arrows move  enter load  esc back  q quit'
-								: 'tab switch panel  arrows scroll  enter load  esc back  q quit'}
+								: state.screen === 'vcl'
+									? 'arrows move  enter load  esc back  q quit'
+									: 'tab switch panel  arrows scroll  enter load  esc back  q quit'}
 				</text>
 				<text attributes={TextAttributes.DIM}>
 					{state.servicesLoaded ? `${state.services.length} services` : ''}

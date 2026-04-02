@@ -1,7 +1,13 @@
-import type { Backend, Service, ServiceVersionDetail, Snippet } from 'fastly'
+import type {
+	Backend,
+	Service,
+	ServiceVersionDetail,
+	Snippet,
+	Vcl,
+} from 'fastly'
 import React, { createContext, useContext, useReducer } from 'react'
 
-export type Screen = 'services' | 'service' | 'snippet' | 'backend'
+export type Screen = 'services' | 'service' | 'snippet' | 'backend' | 'vcl'
 export type FocusTarget = 'filter' | 'list'
 export type ServiceFocusTarget =
 	| 'versions'
@@ -10,6 +16,7 @@ export type ServiceFocusTarget =
 	| 'vcls'
 	| 'domains'
 export type SnippetFocusTarget = 'list' | 'content'
+export type VclFocusTarget = 'list' | 'content'
 
 export interface AppState {
 	screen: Screen
@@ -23,6 +30,7 @@ export interface AppState {
 	selectedServiceId: string | null
 	serviceFocus: ServiceFocusTarget
 	snippetFocus: SnippetFocusTarget
+	vclFocus: VclFocusTarget
 	versionSelectedIndex: number
 	selectedVersionNumber: number | null
 	backendSelectedIndex: number
@@ -32,6 +40,10 @@ export interface AppState {
 	backendDetailsError: string | null
 	snippetSelectedIndex: number
 	vclSelectedIndex: number
+	selectedVclName: string | null
+	vclDetails: Vcl | null
+	vclDetailsLoading: boolean
+	vclDetailsError: string | null
 	domainSelectedIndex: number
 	selectedSnippetName: string | null
 	snippetDetails: Snippet | null
@@ -58,17 +70,23 @@ type Action =
 	| { type: 'backend/details-error'; error: string }
 	| { type: 'snippet/selection-set'; index: number }
 	| { type: 'vcl/selection-set'; index: number }
+	| { type: 'vcl/select'; name: string }
+	| { type: 'vcl/details-loading' }
+	| { type: 'vcl/details-loaded'; vcl: Vcl | null }
+	| { type: 'vcl/details-error'; error: string }
 	| { type: 'domain/selection-set'; index: number }
 	| { type: 'snippet/select'; name: string }
 	| { type: 'snippet/details-loading' }
 	| { type: 'snippet/details-loaded'; snippet: AppState['snippetDetails'] }
 	| { type: 'snippet/details-error'; error: string }
 	| { type: 'snippet/focus'; focus: SnippetFocusTarget }
+	| { type: 'vcl/focus'; focus: VclFocusTarget }
 	| { type: 'version/details-loading' }
 	| { type: 'version/details-loaded'; version: ServiceVersionDetail | null }
 	| { type: 'version/details-error'; error: string }
 	| { type: 'service/focus'; focus: ServiceFocusTarget }
 	| { type: 'screen/backend' }
+	| { type: 'screen/vcl' }
 	| { type: 'screen/snippet' }
 	| { type: 'screen/service' }
 	| { type: 'screen/services' }
@@ -86,6 +104,7 @@ const initialState: AppState = {
 	selectedServiceId: null,
 	serviceFocus: 'versions',
 	snippetFocus: 'list',
+	vclFocus: 'list',
 	versionSelectedIndex: 0,
 	selectedVersionNumber: null,
 	backendSelectedIndex: 0,
@@ -95,6 +114,10 @@ const initialState: AppState = {
 	backendDetailsError: null,
 	snippetSelectedIndex: 0,
 	vclSelectedIndex: 0,
+	selectedVclName: null,
+	vclDetails: null,
+	vclDetailsLoading: false,
+	vclDetailsError: null,
 	domainSelectedIndex: 0,
 	selectedSnippetName: null,
 	snippetDetails: null,
@@ -148,6 +171,7 @@ function reducer(state: AppState, action: Action): AppState {
 				screen: 'service',
 				serviceFocus: 'versions',
 				snippetFocus: 'list',
+				vclFocus: 'list',
 				versionSelectedIndex: 0,
 				selectedVersionNumber: null,
 				backendSelectedIndex: 0,
@@ -157,6 +181,10 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetailsError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
+				selectedVclName: null,
+				vclDetails: null,
+				vclDetailsLoading: false,
+				vclDetailsError: null,
 				domainSelectedIndex: 0,
 				selectedSnippetName: null,
 				snippetDetails: null,
@@ -185,6 +213,10 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetails: null,
 				backendDetailsLoading: false,
 				backendDetailsError: null,
+				selectedVclName: null,
+				vclDetails: null,
+				vclDetailsLoading: false,
+				vclDetailsError: null,
 				selectedSnippetName: null,
 				snippetDetails: null,
 				snippetDetailsLoading: false,
@@ -231,6 +263,32 @@ function reducer(state: AppState, action: Action): AppState {
 				...state,
 				vclSelectedIndex: action.index,
 			}
+		case 'vcl/select':
+			return {
+				...state,
+				selectedVclName: action.name,
+			}
+		case 'vcl/details-loading':
+			return {
+				...state,
+				vclDetailsLoading: true,
+				vclDetailsError: null,
+				vclDetails: null,
+			}
+		case 'vcl/details-loaded':
+			return {
+				...state,
+				vclDetailsLoading: false,
+				vclDetailsError: null,
+				vclDetails: action.vcl,
+			}
+		case 'vcl/details-error':
+			return {
+				...state,
+				vclDetailsLoading: false,
+				vclDetailsError: action.error,
+				vclDetails: null,
+			}
 		case 'domain/selection-set':
 			return {
 				...state,
@@ -267,6 +325,11 @@ function reducer(state: AppState, action: Action): AppState {
 				...state,
 				snippetFocus: action.focus,
 			}
+		case 'vcl/focus':
+			return {
+				...state,
+				vclFocus: action.focus,
+			}
 		case 'version/details-loading':
 			return {
 				...state,
@@ -293,6 +356,12 @@ function reducer(state: AppState, action: Action): AppState {
 				...state,
 				screen: 'backend',
 			}
+		case 'screen/vcl':
+			return {
+				...state,
+				screen: 'vcl',
+				vclFocus: 'list',
+			}
 		case 'screen/snippet':
 			return {
 				...state,
@@ -311,6 +380,7 @@ function reducer(state: AppState, action: Action): AppState {
 				selectedServiceId: null,
 				serviceFocus: 'versions',
 				snippetFocus: 'list',
+				vclFocus: 'list',
 				versionSelectedIndex: 0,
 				selectedVersionNumber: null,
 				backendSelectedIndex: 0,
@@ -320,6 +390,10 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetailsError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
+				selectedVclName: null,
+				vclDetails: null,
+				vclDetailsLoading: false,
+				vclDetailsError: null,
 				domainSelectedIndex: 0,
 				selectedSnippetName: null,
 				snippetDetails: null,

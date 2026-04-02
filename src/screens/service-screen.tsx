@@ -372,6 +372,13 @@ export function ServiceScreen() {
 							selectedVclIndex,
 							'vcls',
 							(index) => dispatch({ type: 'vcl/selection-set', index }),
+							(option) => {
+								const name = option?.value as string | undefined
+								if (name) {
+									dispatch({ type: 'vcl/select', name })
+									dispatch({ type: 'screen/vcl' })
+								}
+							},
 						)}
 						{renderSelectBox(
 							'Domains',
