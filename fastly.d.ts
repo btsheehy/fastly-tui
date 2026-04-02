@@ -62,6 +62,31 @@ declare module "fastly" {
 		service_id: string;
 	}
 
+	export interface ServiceVersionDetail extends Version {
+		service_id?: string;
+		backends?: Backend[];
+		cache_settings?: any[];
+		conditions?: any[];
+		directors?: any[];
+		domains?: DomainResponse[];
+		gzips?: any[];
+		headers?: any[];
+		healthchecks?: any[];
+		request_settings?: any[];
+		response_objects?: any[];
+		settings?: any;
+		snippets?: Snippet[];
+		vcls?: Vcl[];
+		wordpress?: any[];
+		environments?: any[];
+	}
+
+	export interface ServiceDetail extends Service {
+		active_version?: ServiceVersionDetail | null;
+		version?: ServiceVersionDetail;
+		environments?: any[];
+	}
+
 	export interface Service {
 		id: string;
 		name: string;
@@ -229,7 +254,7 @@ declare module "fastly" {
 			service_id: string;
 			version?: number;
 			filter_versions_active?: boolean;
-		}): Promise<Service>;
+		}): Promise<ServiceDetail>;
 		listServiceDomains(options: { service_id: string }): Promise<any[]>;
 		listServices(options?: {
 			page?: number;

@@ -1,16 +1,23 @@
 {
   "name": "fastly-tui",
-  "module": "index.ts",
+  "module": "src/index.tsx",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx",
+    "format": "bunx --bun @biomejs/biome format --write ./src"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.10",
     "@types/bun": "latest"
   },
-  "scripts": {
-    "format": "bunx --bun @biomejs/biome format --write ./src"
-  },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.95",
+    "@opentui/react": "^0.1.95",
+    "fastly": "^15.1.0",
+    "react": "^19.2.4"
   }
 }
