@@ -1,0 +1,16 @@
+{
+  "name": "fastly-tui",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.10",
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "format": "bunx --bun @biomejs/biome format --write ./src"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
