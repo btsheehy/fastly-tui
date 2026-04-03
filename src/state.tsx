@@ -45,6 +45,12 @@ export interface AppState {
 	backendDetails: Backend | null
 	backendDetailsLoading: boolean
 	backendDetailsError: string | null
+	backendCreateMode: boolean
+	backendEditMode: boolean
+	backendEditFieldIndex: number
+	backendEditValues: Record<string, string>
+	backendSaveLoading: boolean
+	backendSaveError: string | null
 	snippetSelectedIndex: number
 	vclSelectedIndex: number
 	selectedVclName: string | null
@@ -86,6 +92,14 @@ type Action =
 	| { type: 'backend/details-loading' }
 	| { type: 'backend/details-loaded'; backend: Backend | null }
 	| { type: 'backend/details-error'; error: string }
+	| { type: 'backend/create-start'; values: Record<string, string> }
+	| { type: 'backend/edit-start'; values: Record<string, string> }
+	| { type: 'backend/edit-cancel' }
+	| { type: 'backend/edit-field'; index: number }
+	| { type: 'backend/edit-value'; key: string; value: string }
+	| { type: 'backend/save-start' }
+	| { type: 'backend/save-success' }
+	| { type: 'backend/save-error'; error: string }
 	| { type: 'snippet/selection-set'; index: number }
 	| { type: 'vcl/selection-set'; index: number }
 	| { type: 'vcl/select'; name: string }
@@ -136,6 +150,12 @@ const initialState: AppState = {
 	backendDetails: null,
 	backendDetailsLoading: false,
 	backendDetailsError: null,
+	backendCreateMode: false,
+	backendEditMode: false,
+	backendEditFieldIndex: 0,
+	backendEditValues: {},
+	backendSaveLoading: false,
+	backendSaveError: null,
 	snippetSelectedIndex: 0,
 	vclSelectedIndex: 0,
 	selectedVclName: null,
@@ -274,6 +294,12 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetails: null,
 				backendDetailsLoading: false,
 				backendDetailsError: null,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendEditFieldIndex: 0,
+				backendEditValues: {},
+				backendSaveLoading: false,
+				backendSaveError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
 				selectedVclName: null,
@@ -314,6 +340,12 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetails: null,
 				backendDetailsLoading: false,
 				backendDetailsError: null,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendEditFieldIndex: 0,
+				backendEditValues: {},
+				backendSaveLoading: false,
+				backendSaveError: null,
 				selectedVclName: null,
 				vclDetails: null,
 				vclDetailsLoading: false,
@@ -338,6 +370,12 @@ function reducer(state: AppState, action: Action): AppState {
 			return {
 				...state,
 				selectedBackendName: action.name,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendEditFieldIndex: 0,
+				backendEditValues: {},
+				backendSaveLoading: false,
+				backendSaveError: null,
 			}
 		case 'backend/details-loading':
 			return {
@@ -359,6 +397,67 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetailsLoading: false,
 				backendDetailsError: action.error,
 				backendDetails: null,
+			}
+		case 'backend/create-start':
+			return {
+				...state,
+				backendCreateMode: true,
+				backendEditMode: true,
+				backendEditFieldIndex: 0,
+				backendEditValues: action.values,
+				backendSaveError: null,
+			}
+		case 'backend/edit-start':
+			return {
+				...state,
+				backendCreateMode: false,
+				backendEditMode: true,
+				backendEditFieldIndex: 0,
+				backendEditValues: action.values,
+				backendSaveError: null,
+			}
+		case 'backend/edit-cancel':
+			return {
+				...state,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendEditFieldIndex: 0,
+				backendEditValues: {},
+				backendSaveLoading: false,
+				backendSaveError: null,
+			}
+		case 'backend/edit-field':
+			return {
+				...state,
+				backendEditFieldIndex: action.index,
+			}
+		case 'backend/edit-value':
+			return {
+				...state,
+				backendEditValues: {
+					...state.backendEditValues,
+					[action.key]: action.value,
+				},
+			}
+		case 'backend/save-start':
+			return {
+				...state,
+				backendSaveLoading: true,
+				backendSaveError: null,
+			}
+		case 'backend/save-success':
+			return {
+				...state,
+				backendSaveLoading: false,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendSaveError: null,
+			}
+		case 'backend/save-error':
+			return {
+				...state,
+				backendSaveLoading: false,
+				backendSaveError: action.error,
 			}
 		case 'snippet/selection-set':
 			return {
@@ -495,6 +594,12 @@ function reducer(state: AppState, action: Action): AppState {
 				backendDetails: null,
 				backendDetailsLoading: false,
 				backendDetailsError: null,
+				backendCreateMode: false,
+				backendEditMode: false,
+				backendEditFieldIndex: 0,
+				backendEditValues: {},
+				backendSaveLoading: false,
+				backendSaveError: null,
 				snippetSelectedIndex: 0,
 				vclSelectedIndex: 0,
 				selectedVclName: null,

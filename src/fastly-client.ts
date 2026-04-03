@@ -69,6 +69,36 @@ export async function getBackendDetail(
 	})
 }
 
+export async function updateBackend(
+	serviceId: string,
+	versionNumber: number,
+	backendName: string,
+	updates: Partial<Backend>,
+): Promise<Backend> {
+	ensureAuthenticated()
+	const api = new Fastly.BackendApi()
+	return api.updateBackend({
+		service_id: serviceId,
+		version_id: versionNumber,
+		backend_name: backendName,
+		...updates,
+	})
+}
+
+export async function createBackend(
+	serviceId: string,
+	versionNumber: number,
+	updates: Partial<Backend>,
+): Promise<Backend> {
+	ensureAuthenticated()
+	const api = new Fastly.BackendApi()
+	return api.createBackend({
+		service_id: serviceId,
+		version_id: versionNumber,
+		...updates,
+	})
+}
+
 export async function getVclDetail(
 	serviceId: string,
 	versionNumber: number,

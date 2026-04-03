@@ -65,13 +65,6 @@ function AppShell() {
 			return
 		}
 
-		if (state.screen === 'backend') {
-			if (isEscape || key.name === 'backspace') {
-				dispatch({ type: 'screen/service' })
-			}
-			return
-		}
-
 		if (state.screen === 'vcl') {
 			if (isEscape || key.name === 'backspace') {
 				dispatch({ type: 'screen/service' })
