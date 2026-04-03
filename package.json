@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/index.tsx",
-    "format": "bunx --bun @biomejs/biome format --write ./src"
+    "format": "bunx --bun @biomejs/biome format --write ./src",
+    "check": "bunx --bun @biomejs/biome format ./src"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.10",

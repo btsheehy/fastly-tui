@@ -55,6 +55,61 @@ export async function getSnippetDetail(
 	})
 }
 
+export async function createSnippet(
+	serviceId: string,
+	versionNumber: number,
+	updates: {
+		name: string
+		type: string
+		content: string
+		priority?: string
+		dynamic?: '0' | '1'
+	},
+): Promise<Snippet> {
+	ensureAuthenticated()
+	const api = new Fastly.SnippetApi()
+	return api.createSnippet({
+		service_id: serviceId,
+		version_id: versionNumber,
+		...updates,
+	})
+}
+
+export async function updateSnippet(
+	serviceId: string,
+	versionNumber: number,
+	name: string,
+	updates: {
+		type?: string
+		content?: string
+		priority?: string
+		dynamic?: '0' | '1'
+	},
+): Promise<Snippet> {
+	ensureAuthenticated()
+	const api = new Fastly.SnippetApi()
+	return api.updateSnippet({
+		service_id: serviceId,
+		version_id: versionNumber,
+		name,
+		...updates,
+	})
+}
+
+export async function deleteSnippet(
+	serviceId: string,
+	versionNumber: number,
+	name: string,
+): Promise<void> {
+	ensureAuthenticated()
+	const api = new Fastly.SnippetApi()
+	await api.deleteSnippet({
+		service_id: serviceId,
+		version_id: versionNumber,
+		name,
+	})
+}
+
 export async function getBackendDetail(
 	serviceId: string,
 	versionNumber: number,

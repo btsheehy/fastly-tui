@@ -62,6 +62,13 @@ export interface AppState {
 	snippetDetails: Snippet | null
 	snippetDetailsLoading: boolean
 	snippetDetailsError: string | null
+	snippetCreateMode: boolean
+	snippetEditMode: boolean
+	snippetEditFieldIndex: number
+	snippetEditValues: Record<string, string>
+	snippetContentDraft: string
+	snippetSaveLoading: boolean
+	snippetSaveError: string | null
 	versionDetails: ServiceVersionDetail | null
 	versionDetailsLoading: boolean
 	versionDetailsError: string | null
@@ -111,6 +118,23 @@ type Action =
 	| { type: 'snippet/details-loading' }
 	| { type: 'snippet/details-loaded'; snippet: AppState['snippetDetails'] }
 	| { type: 'snippet/details-error'; error: string }
+	| {
+			type: 'snippet/create-start'
+			values: Record<string, string>
+			content: string
+	  }
+	| {
+			type: 'snippet/edit-start'
+			values: Record<string, string>
+			content: string
+	  }
+	| { type: 'snippet/edit-cancel' }
+	| { type: 'snippet/edit-field'; index: number }
+	| { type: 'snippet/edit-value'; key: string; value: string }
+	| { type: 'snippet/content-set'; content: string }
+	| { type: 'snippet/save-start' }
+	| { type: 'snippet/save-success' }
+	| { type: 'snippet/save-error'; error: string }
 	| { type: 'snippet/focus'; focus: SnippetFocusTarget }
 	| { type: 'vcl/focus'; focus: VclFocusTarget }
 	| { type: 'version/details-loading' }
@@ -167,6 +191,13 @@ const initialState: AppState = {
 	snippetDetails: null,
 	snippetDetailsLoading: false,
 	snippetDetailsError: null,
+	snippetCreateMode: false,
+	snippetEditMode: false,
+	snippetEditFieldIndex: 0,
+	snippetEditValues: {},
+	snippetContentDraft: '',
+	snippetSaveLoading: false,
+	snippetSaveError: null,
 	versionDetails: null,
 	versionDetailsLoading: false,
 	versionDetailsError: null,
@@ -311,6 +342,13 @@ function reducer(state: AppState, action: Action): AppState {
 				snippetDetails: null,
 				snippetDetailsLoading: false,
 				snippetDetailsError: null,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: {},
+				snippetContentDraft: '',
+				snippetSaveLoading: false,
+				snippetSaveError: null,
 				versionDetails: null,
 				versionDetailsLoading: false,
 				versionDetailsError: null,
@@ -354,6 +392,13 @@ function reducer(state: AppState, action: Action): AppState {
 				snippetDetails: null,
 				snippetDetailsLoading: false,
 				snippetDetailsError: null,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: {},
+				snippetContentDraft: '',
+				snippetSaveLoading: false,
+				snippetSaveError: null,
 				cloneConfirmOpen: false,
 				cloneLoading: false,
 				cloneError: null,
@@ -504,6 +549,13 @@ function reducer(state: AppState, action: Action): AppState {
 			return {
 				...state,
 				selectedSnippetName: action.name,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: {},
+				snippetContentDraft: '',
+				snippetSaveLoading: false,
+				snippetSaveError: null,
 			}
 		case 'snippet/details-loading':
 			return {
@@ -525,6 +577,75 @@ function reducer(state: AppState, action: Action): AppState {
 				snippetDetailsLoading: false,
 				snippetDetailsError: action.error,
 				snippetDetails: null,
+			}
+		case 'snippet/create-start':
+			return {
+				...state,
+				snippetCreateMode: true,
+				snippetEditMode: true,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: action.values,
+				snippetContentDraft: action.content,
+				snippetSaveError: null,
+			}
+		case 'snippet/edit-start':
+			return {
+				...state,
+				snippetCreateMode: false,
+				snippetEditMode: true,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: action.values,
+				snippetContentDraft: action.content,
+				snippetSaveError: null,
+			}
+		case 'snippet/edit-cancel':
+			return {
+				...state,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: {},
+				snippetContentDraft: '',
+				snippetSaveLoading: false,
+				snippetSaveError: null,
+			}
+		case 'snippet/edit-field':
+			return {
+				...state,
+				snippetEditFieldIndex: action.index,
+			}
+		case 'snippet/edit-value':
+			return {
+				...state,
+				snippetEditValues: {
+					...state.snippetEditValues,
+					[action.key]: action.value,
+				},
+			}
+		case 'snippet/content-set':
+			return {
+				...state,
+				snippetContentDraft: action.content,
+			}
+		case 'snippet/save-start':
+			return {
+				...state,
+				snippetSaveLoading: true,
+				snippetSaveError: null,
+			}
+		case 'snippet/save-success':
+			return {
+				...state,
+				snippetSaveLoading: false,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetSaveError: null,
+			}
+		case 'snippet/save-error':
+			return {
+				...state,
+				snippetSaveLoading: false,
+				snippetSaveError: action.error,
 			}
 		case 'snippet/focus':
 			return {
@@ -611,6 +732,13 @@ function reducer(state: AppState, action: Action): AppState {
 				snippetDetails: null,
 				snippetDetailsLoading: false,
 				snippetDetailsError: null,
+				snippetCreateMode: false,
+				snippetEditMode: false,
+				snippetEditFieldIndex: 0,
+				snippetEditValues: {},
+				snippetContentDraft: '',
+				snippetSaveLoading: false,
+				snippetSaveError: null,
 				versionDetails: null,
 				versionDetailsLoading: false,
 				versionDetailsError: null,

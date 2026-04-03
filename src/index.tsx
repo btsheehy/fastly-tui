@@ -1,6 +1,7 @@
 import { createCliRenderer, TextAttributes } from '@opentui/core'
 import { createRoot, useKeyboard, useRenderer } from '@opentui/react'
 import { useEffect } from 'react'
+import { installApiLogger } from './api-logger'
 import {
 	activateServiceVersion,
 	cloneServiceVersion,
@@ -15,6 +16,7 @@ import { ServicesPalette } from './screens/services-palette'
 import { AppStateProvider, useAppState } from './state'
 
 function AppShell() {
+	installApiLogger()
 	const { state, dispatch } = useAppState()
 	const renderer = useRenderer()
 
@@ -79,10 +81,13 @@ function AppShell() {
 		}
 
 		if (state.screen === 'snippet') {
+			if (state.snippetEditMode) {
+				return
+			}
 			if (isEscape || key.name === 'backspace') {
 				dispatch({ type: 'screen/service' })
 			}
-			if (isTab) {
+			if (isTab && !state.snippetEditMode) {
 				dispatch({
 					type: 'snippet/focus',
 					focus: state.snippetFocus === 'list' ? 'content' : 'list',
